@@ -1,0 +1,113 @@
+---
+title: "Practical Machine Learning - Prediction Model for Weight Lifting Exercise Dataset"
+author: "Gavin Kim"
+date: "2016-12-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading data
+
+```{r loadData}
+# Check existance of data directory and create it if not exist.
+dataDir <- "data"
+if(!dir.exists(dataDir))
+  dir.create(dataDir)
+
+# Download training and test file 
+Url.train <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+Url.test <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+data.trainPath <- paste0(dataDir, "/", basename(Url.train))
+data.testPath <- paste0(dataDir, "/", basename(Url.test))
+
+if(!file.exists(data.trainPath))
+  download.file(Url.train, data.trainPath, mode = "w")
+if(!file.exists(data.testPath))
+  download.file(Url.test, data.testPath, mode = "w")
+
+data.train <- read.csv(data.trainPath)
+data.test <- read.csv(data.testPath)
+```
+
+## Preprocessing data
+
+```{r cleaningData}
+library(caret)
+# Remove columns having NA values
+cs <- colSums(is.na(data.train))
+data.train <- data.train[,(cs == 0)]
+data.test <- data.test[,(cs == 0)]
+
+# Remove near zero columns
+nzv <- nearZeroVar(data.train,saveMetrics=TRUE)
+data.train <- data.train[,!nzv$nzv]
+data.test <- data.test[,!nzv$nzv]
+
+
+str(data.train)
+summary(data.train)
+colSums(is.na(data.train))
+
+
+
+```
+
+After cleaning data, I found the test data set has only 20 observasions. It's too small to check the accuracy of model.
+Hence, I decided to split training data with training and validation. The validation data is for test model's accuracy and I'll use training data for building model with K-fold cross validation.
+
+```{r splitData}
+# split data for training/validation
+inTrain <- createDataPartition(y=training$classe, p=0.7, list=FALSE)
+training_clean <- training_colRm[inTrain,]
+validation_clean <- training_colRm[-inTrain,]
+
+# PCA
+res <- prcomp(data.train)
+res$sdev
+length(res$sdev)
+res$rotation
+dim(res$rotation)
+res$x
+dim(res$x)
+preProcess( method="pca", pcaComp=)
+
+head(data.train)
+
+str(data.train)
+summary(data.train)
+
+
+train
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+## Check correlation between each features (Selecting Features)
+
+## PCA
+
+
+## Training
+1. glm
+2. gbm
+3. rf
+4. lda
+
+assenble
+
+## Validation
+
+## Summary
+
+
+
+
+
+
+
+
+
