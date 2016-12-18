@@ -5,11 +5,24 @@ date: "2016-12-15"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Executive Summary
+
+
 ## Loading data
+
+#### Load libraries
+
+```{r loadLib, message=FALSE, warning=FALSE}
+library(caret)
+library(randomForest)
+library(corrplot)
+```
+
+#### Download and Load training/test data
 
 ```{r loadData}
 # Check existance of data directory and create it if not exist.
@@ -34,59 +47,75 @@ data.test <- read.csv(data.testPath)
 
 ## Preprocessing data
 
+After loaing data, we need to remove the columns what we don't use. There are columns that have only NA values and nearly zero variance. It's better that we could replace these columns from data and there's columns not related to predict weight lifting exercise like observation number or user name or timestamps. It also has to be removed.
+
 ```{r cleaningData}
-library(caret)
 # Remove columns having NA values
 cs <- colSums(is.na(data.train))
 data.train <- data.train[,(cs == 0)]
 data.test <- data.test[,(cs == 0)]
 
 # Remove near zero columns
-nzv <- nearZeroVar(data.train,saveMetrics=TRUE)
-data.train <- data.train[,!nzv$nzv]
-data.test <- data.test[,!nzv$nzv]
+nzvColumns <- nearZeroVar(data.train,saveMetrics=TRUE)
+data.train <- data.train[,!nzvColumns$nzv]
+data.test <- data.test[,!nzvColumns$nzv]
 
-
-str(data.train)
-summary(data.train)
-colSums(is.na(data.train))
-
-
-
+# Remove unnecessary columns (Username, timesstamps)
+data.train <- data.train[,-c(1:6)]
+data.test <- data.test[,-c(1:6)]
 ```
+
+With checking correlation plot, we can get there's no strong relation between variables to disadventage building model.
+
+```{r corr}
+corrplot(cor(data.train[,-53]), method="pie", type="upper")
+```
+
+#### Split data to training and validation set
 
 After cleaning data, I found the test data set has only 20 observasions. It's too small to check the accuracy of model.
 Hence, I decided to split training data with training and validation. The validation data is for test model's accuracy and I'll use training data for building model with K-fold cross validation.
 
 ```{r splitData}
 # split data for training/validation
-inTrain <- createDataPartition(y=training$classe, p=0.7, list=FALSE)
-training_clean <- training_colRm[inTrain,]
-validation_clean <- training_colRm[-inTrain,]
-
-# PCA
-res <- prcomp(data.train)
-res$sdev
-length(res$sdev)
-res$rotation
-dim(res$rotation)
-res$x
-dim(res$x)
-preProcess( method="pca", pcaComp=)
-
-head(data.train)
-
-str(data.train)
-summary(data.train)
-
-
-train
+inTrain <- createDataPartition(y=data.train$classe, p=0.7, list=FALSE)
+data.trainPart <- data.train[inTrain,]
+data.validPart <- data.train[-inTrain,]
 ```
 
+## Modeling
+
+I made plan to use ensemble model with stacking glm, gbm, rf, lda. There's no need for PCA transform when use random forest, but I'll use it for other models.
+
+```{r pca}
+# 53th column is "classe" what will used for outcome label.
+pcaModel <- preProcess(data.train[,-53], method=c("pca", "center", "scale"), thresh = 0.95)
+data.trainPca <- predict(pcaModel, data.train[,-53])
+data.trainPca <- data.frame(data.trainPca, classe = data.train[,53])
+data.testPca <- predict(pcaModel, data.test[,-53])
+print(pcaModel)
+```
+
+As you see above 25 components has captured with 95 percent of the variance.
+
+```{r glm}
+```
+
+
+```{r gbm}
+```
+
+
+```{r rf}
+```
+
+```{r lda}
+```
+
+```{r ensemble}
+```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-
-## Check correlation between each features (Selecting Features)
 
 ## PCA
 
@@ -97,7 +126,7 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 3. rf
 4. lda
 
-assenble
+ensemble
 
 ## Validation
 
