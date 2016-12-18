@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Executive Summary
 This is final report of Coursera Practical Machine Learning Course. Goal of this document is to build a prediction model of Weight Lifting Exercise. The dataset contains variables from sensor worn by users and the classes that type of exercise.
-For match this goal, I used ensemble model of Generalized Boosted Regression Model, Random Forest, Linear Discriminant Analysis. And for reducing dimension to increase training speed, PCA is used. After all this approach, I could get 0.98% of accuracy.
+For match this goal, I used ensemble model of Generalized Boosted Regression Model, Random Forest, Conditional Inference Tree. And for reducing dimension to increase training speed, PCA is used. But the ensenble got no more performance of model than Random Forest. After all this approach, I could get 0.98% of accuracy.
 
 ## Loading data
 
@@ -21,6 +21,7 @@ For match this goal, I used ensemble model of Generalized Boosted Regression Mod
 library(caret)
 library(randomForest)
 library(corrplot)
+library(MASS)
 
 # For increasing learning speed, use multi-core.
 library(doMC)
@@ -90,7 +91,7 @@ data.validPart <- data.train[-inTrain,]
 
 ## Modeling
 
-I made plan to use ensemble model with stacking gbm, rf, lda. And PCA can reduce the size of variables for training performance.
+I made plan to use ensemble model with stacking gbm, rf, ctree And PCA can reduce the size of variables for training performance.
 
 ```{r pca}
 # 53th column is "classe" what will used for outcome label.
@@ -119,21 +120,21 @@ pred_rf <- predict(fit_rf, newdata = data.validPca)
 confusionMatrix(pred_rf,data.validPca$classe)
 ```
 
-```{r lda}
+```{r ctree}
 set.seed(1234)
-fit_lda <- train(classe ~ ., data = data.trainPca, method = "lda")
-pred_lda <- predict(fit_lda, newdata = data.validPca)
-confusionMatrix(pred_lda,data.validPca$classe)
+fit_ctree <- train(classe ~ ., data = data.trainPca, method = "ctree")
+pred_ctree <- predict(fit_ctree, newdata = data.validPca)
+confusionMatrix(pred_ctree,data.validPca$classe)
 ```
 
 ```{r ensemble}
-predDF <- data.frame(pred_gbm, pred_rf, pred_lda, classe = data.validPca$classe)
+predDF <- data.frame(pred_gbm, pred_rf, pred_ctree, classe = data.validPca$classe)
 fit_stacked <- train(classe ~ ., data = predDF, method="rf")
 pred_stacked <- predict(fit_stacked, newdata = predDF)
 confusionMatrix(pred_stacked,data.validPca$classe)
 ```
 
-The model what has best performance is Random forest as you see. And the ensemble model of gbm, rf, lda gets better only 0.0028% of accuracy.
+The model what has best performance is Random forest as you see. And the ensemble model of gbm, rf, ctree gets no benefit of accuracy.
 
 
 ## Testing
@@ -144,11 +145,13 @@ Here is the results.
 ```{r testing}
 # Apply PCA
 data.testPCA <- predict(pcaModel, data.test[,-53])
+
+# Create predicted variales
 pred_gbm_test <- predict(fit_gbm, newdata = data.testPCA)
 pred_rf_test <- predict(fit_rf, newdata = data.testPCA)
-pred_lda_test <- predict(fit_lda, newdata = data.testPCA)
+pred_ctree_test <- predict(fit_ctree, newdata = data.testPCA)
 
-predDF_test <- data.frame(pred_gbm = pred_gbm_test, pred_rf = pred_rf_test, pred_lda = pred_lda_test)
+predDF_test <- data.frame(pred_gbm = pred_gbm_test, pred_rf = pred_rf_test, pred_ctree = pred_ctree_test)
 pred_stacked_test <- predict(fit_stacked, newdata = predDF_test)
 print(t(data.frame(pred_stacked_test)))
 
