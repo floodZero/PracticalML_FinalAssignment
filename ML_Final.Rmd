@@ -2,7 +2,10 @@
 title: "Practical Machine Learning - Prediction Model for Weight Lifting Exercise Dataset"
 author: "Gavin Kim"
 date: "2016-12-15"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
+    self_contained: no
 ---
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
@@ -106,28 +109,28 @@ print(pcaModel)
 As you see above 25 components has captured with 95 percent of the variance.
 
 
-```{r gbm}
+```{r gbm, warning=FALSE}
 set.seed(1234)
 fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm")
 pred_gbm <- predict(fit_gbm, newdata = data.validPca)
 confusionMatrix(pred_gbm,data.validPca$classe)
 ```
 
-```{r rf}
+```{r rf, warning=FALSE}
 set.seed(1234)
 fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf")
 pred_rf <- predict(fit_rf, newdata = data.validPca)
 confusionMatrix(pred_rf,data.validPca$classe)
 ```
 
-```{r ctree}
+```{r ctree, warning=FALSE}
 set.seed(1234)
 fit_ctree <- train(classe ~ ., data = data.trainPca, method = "ctree")
 pred_ctree <- predict(fit_ctree, newdata = data.validPca)
 confusionMatrix(pred_ctree,data.validPca$classe)
 ```
 
-```{r ensemble}
+```{r ensemble, warning=FALSE}
 predDF <- data.frame(pred_gbm, pred_rf, pred_ctree, classe = data.validPca$classe)
 fit_stacked <- train(classe ~ ., data = predDF, method="rf")
 pred_stacked <- predict(fit_stacked, newdata = predDF)
@@ -142,7 +145,7 @@ The model what has best performance is Random forest as you see. And the ensembl
 We need answer to predict the 20 test set with this model.
 Here is the results.
 
-```{r testing}
+```{r testing, warning=FALSE}
 # Apply PCA
 data.testPCA <- predict(pcaModel, data.test[,-53])
 
