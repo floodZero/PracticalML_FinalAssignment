@@ -17,7 +17,8 @@ For match this goal, I used ensemble model of Generalized Boosted Regression Mod
 library(caret)
 library(randomForest)
 library(corrplot)
-library(MASS)
+library(gbm)
+library(party)
 
 # For increasing learning speed, use multi-core.
 library(doMC)
@@ -128,56 +129,25 @@ fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm")
 ```
 
 ```
-## Loading required package: gbm
-```
-
-```
-## Loading required package: survival
-```
-
-```
-## 
-## Attaching package: 'survival'
-```
-
-```
-## The following object is masked from 'package:caret':
-## 
-##     cluster
-```
-
-```
-## Loading required package: splines
-```
-
-```
-## Loaded gbm 2.1.1
-```
-
-```
-## Loading required package: plyr
-```
-
-```
 ## Iter   TrainDeviance   ValidDeviance   StepSize   Improve
-##      1        1.6094             nan     0.1000    0.1168
-##      2        1.5352             nan     0.1000    0.0799
-##      3        1.4829             nan     0.1000    0.0776
-##      4        1.4347             nan     0.1000    0.0628
-##      5        1.3963             nan     0.1000    0.0506
-##      6        1.3633             nan     0.1000    0.0455
-##      7        1.3337             nan     0.1000    0.0421
-##      8        1.3073             nan     0.1000    0.0368
-##      9        1.2828             nan     0.1000    0.0314
-##     10        1.2614             nan     0.1000    0.0335
-##     20        1.1007             nan     0.1000    0.0166
-##     40        0.9251             nan     0.1000    0.0082
-##     60        0.8188             nan     0.1000    0.0064
-##     80        0.7412             nan     0.1000    0.0056
-##    100        0.6761             nan     0.1000    0.0026
-##    120        0.6233             nan     0.1000    0.0020
-##    140        0.5763             nan     0.1000    0.0021
-##    150        0.5570             nan     0.1000    0.0016
+##      1        1.6094             nan     0.1000    0.1145
+##      2        1.5359             nan     0.1000    0.0828
+##      3        1.4825             nan     0.1000    0.0804
+##      4        1.4316             nan     0.1000    0.0641
+##      5        1.3918             nan     0.1000    0.0553
+##      6        1.3562             nan     0.1000    0.0509
+##      7        1.3240             nan     0.1000    0.0391
+##      8        1.2988             nan     0.1000    0.0361
+##      9        1.2740             nan     0.1000    0.0329
+##     10        1.2515             nan     0.1000    0.0272
+##     20        1.0995             nan     0.1000    0.0189
+##     40        0.9218             nan     0.1000    0.0070
+##     60        0.8127             nan     0.1000    0.0064
+##     80        0.7305             nan     0.1000    0.0044
+##    100        0.6675             nan     0.1000    0.0031
+##    120        0.6153             nan     0.1000    0.0033
+##    140        0.5711             nan     0.1000    0.0016
+##    150        0.5516             nan     0.1000    0.0019
 ```
 
 ```r
@@ -190,33 +160,33 @@ confusionMatrix(pred_gbm,data.validPca$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1509  140   57   24   31
-##          B   38  863   92   23   79
-##          C   55   81  826  112   60
-##          D   65   18   26  779   42
-##          E    7   37   25   26  870
+##          A 1528  134   54   27   24
+##          B   34  857   77   20   79
+##          C   29   88  853  129   72
+##          D   74   16   23  758   47
+##          E    9   44   19   30  860
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.8236          
-##                  95% CI : (0.8136, 0.8333)
+##                Accuracy : 0.8251          
+##                  95% CI : (0.8152, 0.8348)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc > NIR] : < 2.2e-16       
 ##                                           
-##                   Kappa : 0.7765          
+##                   Kappa : 0.7784          
 ##  Mcnemar's Test P-Value : < 2.2e-16       
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9014   0.7577   0.8051   0.8081   0.8041
-## Specificity            0.9402   0.9511   0.9366   0.9693   0.9802
-## Pos Pred Value         0.8569   0.7881   0.7284   0.8376   0.9016
-## Neg Pred Value         0.9600   0.9424   0.9579   0.9627   0.9569
+## Sensitivity            0.9128   0.7524   0.8314   0.7863   0.7948
+## Specificity            0.9432   0.9558   0.9346   0.9675   0.9788
+## Pos Pred Value         0.8647   0.8032   0.7284   0.8257   0.8940
+## Neg Pred Value         0.9645   0.9415   0.9633   0.9585   0.9549
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2564   0.1466   0.1404   0.1324   0.1478
-## Detection Prevalence   0.2992   0.1861   0.1927   0.1580   0.1640
-## Balanced Accuracy      0.9208   0.8544   0.8708   0.8887   0.8921
+## Detection Rate         0.2596   0.1456   0.1449   0.1288   0.1461
+## Detection Prevalence   0.3003   0.1813   0.1990   0.1560   0.1635
+## Balanced Accuracy      0.9280   0.8541   0.8830   0.8769   0.8868
 ```
 
 
@@ -232,96 +202,39 @@ confusionMatrix(pred_rf,data.validPca$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1668   16    1    1    0
-##          B    0 1104   21    2    3
-##          C    3   14  997   36    8
-##          D    3    0    3  922    3
-##          E    0    5    4    3 1068
+##          A 1667   24    1    2    0
+##          B    1 1103    6    2    6
+##          C    2    7 1015   41    9
+##          D    2    2    3  919    5
+##          E    2    3    1    0 1062
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9786          
-##                  95% CI : (0.9746, 0.9821)
+##                Accuracy : 0.9798          
+##                  95% CI : (0.9759, 0.9832)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc > NIR] : < 2.2e-16       
 ##                                           
-##                   Kappa : 0.9729          
-##  Mcnemar's Test P-Value : NA              
+##                   Kappa : 0.9744          
+##  Mcnemar's Test P-Value : 7.594e-11       
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9964   0.9693   0.9717   0.9564   0.9871
-## Specificity            0.9957   0.9945   0.9874   0.9982   0.9975
-## Pos Pred Value         0.9893   0.9770   0.9423   0.9903   0.9889
-## Neg Pred Value         0.9986   0.9926   0.9940   0.9915   0.9971
+## Sensitivity            0.9958   0.9684   0.9893   0.9533   0.9815
+## Specificity            0.9936   0.9968   0.9879   0.9976   0.9988
+## Pos Pred Value         0.9841   0.9866   0.9451   0.9871   0.9944
+## Neg Pred Value         0.9983   0.9924   0.9977   0.9909   0.9958
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2834   0.1876   0.1694   0.1567   0.1815
-## Detection Prevalence   0.2865   0.1920   0.1798   0.1582   0.1835
-## Balanced Accuracy      0.9961   0.9819   0.9796   0.9773   0.9923
+## Detection Rate         0.2833   0.1874   0.1725   0.1562   0.1805
+## Detection Prevalence   0.2879   0.1900   0.1825   0.1582   0.1815
+## Balanced Accuracy      0.9947   0.9826   0.9886   0.9754   0.9901
 ```
 
 
 ```r
 set.seed(1234)
 fit_ctree <- train(classe ~ ., data = data.trainPca, method = "ctree")
-```
-
-```
-## Loading required package: party
-```
-
-```
-## Loading required package: grid
-```
-
-```
-## Loading required package: mvtnorm
-```
-
-```
-## Loading required package: modeltools
-```
-
-```
-## Loading required package: stats4
-```
-
-```
-## 
-## Attaching package: 'modeltools'
-```
-
-```
-## The following object is masked from 'package:plyr':
-## 
-##     empty
-```
-
-```
-## Loading required package: strucchange
-```
-
-```
-## Loading required package: zoo
-```
-
-```
-## 
-## Attaching package: 'zoo'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
-
-```
-## Loading required package: sandwich
-```
-
-```r
 pred_ctree <- predict(fit_ctree, newdata = data.validPca)
 confusionMatrix(pred_ctree,data.validPca$classe)
 ```
@@ -331,33 +244,33 @@ confusionMatrix(pred_ctree,data.validPca$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1447  135   60   55   33
-##          B   82  797  103   54   84
-##          C   62   80  753   83   51
-##          D   63   53   60  724   72
-##          E   20   74   50   48  842
+##          A 1449  103   68   58   35
+##          B   54  828   97   58   74
+##          C   55   89  749   59   48
+##          D   77   37   74  721   48
+##          E   39   82   38   68  877
 ## 
 ## Overall Statistics
 ##                                          
-##                Accuracy : 0.7754         
-##                  95% CI : (0.7645, 0.786)
+##                Accuracy : 0.7857         
+##                  95% CI : (0.775, 0.7962)
 ##     No Information Rate : 0.2845         
 ##     P-Value [Acc > NIR] : < 2.2e-16      
 ##                                          
-##                   Kappa : 0.7155         
-##  Mcnemar's Test P-Value : 0.001367       
+##                   Kappa : 0.7287         
+##  Mcnemar's Test P-Value : 0.0005321      
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.8644   0.6997   0.7339   0.7510   0.7782
-## Specificity            0.9328   0.9319   0.9432   0.9496   0.9600
-## Pos Pred Value         0.8364   0.7116   0.7318   0.7449   0.8143
-## Neg Pred Value         0.9454   0.9282   0.9438   0.9512   0.9505
+## Sensitivity            0.8656   0.7270   0.7300   0.7479   0.8105
+## Specificity            0.9373   0.9404   0.9483   0.9520   0.9527
+## Pos Pred Value         0.8459   0.7453   0.7490   0.7534   0.7944
+## Neg Pred Value         0.9461   0.9349   0.9433   0.9507   0.9571
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2459   0.1354   0.1280   0.1230   0.1431
-## Detection Prevalence   0.2940   0.1903   0.1749   0.1652   0.1757
-## Balanced Accuracy      0.8986   0.8158   0.8386   0.8503   0.8691
+## Detection Rate         0.2462   0.1407   0.1273   0.1225   0.1490
+## Detection Prevalence   0.2911   0.1888   0.1699   0.1626   0.1876
+## Balanced Accuracy      0.9014   0.8337   0.8392   0.8500   0.8816
 ```
 
 
@@ -373,33 +286,33 @@ confusionMatrix(pred_stacked,data.validPca$classe)
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1668   16    1    1    0
-##          B    0 1104   21    2    3
-##          C    3   14  997   36    8
-##          D    3    0    3  922    3
-##          E    0    5    4    3 1068
+##          A 1667   24    1    2    0
+##          B    1 1103    6    2    6
+##          C    2    7 1015   41    9
+##          D    2    2    3  919    5
+##          E    2    3    1    0 1062
 ## 
 ## Overall Statistics
 ##                                           
-##                Accuracy : 0.9786          
-##                  95% CI : (0.9746, 0.9821)
+##                Accuracy : 0.9798          
+##                  95% CI : (0.9759, 0.9832)
 ##     No Information Rate : 0.2845          
 ##     P-Value [Acc > NIR] : < 2.2e-16       
 ##                                           
-##                   Kappa : 0.9729          
-##  Mcnemar's Test P-Value : NA              
+##                   Kappa : 0.9744          
+##  Mcnemar's Test P-Value : 7.594e-11       
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            0.9964   0.9693   0.9717   0.9564   0.9871
-## Specificity            0.9957   0.9945   0.9874   0.9982   0.9975
-## Pos Pred Value         0.9893   0.9770   0.9423   0.9903   0.9889
-## Neg Pred Value         0.9986   0.9926   0.9940   0.9915   0.9971
+## Sensitivity            0.9958   0.9684   0.9893   0.9533   0.9815
+## Specificity            0.9936   0.9968   0.9879   0.9976   0.9988
+## Pos Pred Value         0.9841   0.9866   0.9451   0.9871   0.9944
+## Neg Pred Value         0.9983   0.9924   0.9977   0.9909   0.9958
 ## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
-## Detection Rate         0.2834   0.1876   0.1694   0.1567   0.1815
-## Detection Prevalence   0.2865   0.1920   0.1798   0.1582   0.1835
-## Balanced Accuracy      0.9961   0.9819   0.9796   0.9773   0.9923
+## Detection Rate         0.2833   0.1874   0.1725   0.1562   0.1805
+## Detection Prevalence   0.2879   0.1900   0.1825   0.1582   0.1815
+## Balanced Accuracy      0.9947   0.9826   0.9886   0.9754   0.9901
 ```
 
 The model what has best performance is Random forest as you see. And the ensemble model of gbm, rf, ctree gets no benefit of accuracy.

@@ -24,7 +24,8 @@ For match this goal, I used ensemble model of Generalized Boosted Regression Mod
 library(caret)
 library(randomForest)
 library(corrplot)
-library(MASS)
+library(gbm)
+library(party)
 
 # For increasing learning speed, use multi-core.
 library(doMC)
@@ -109,21 +110,21 @@ print(pcaModel)
 As you see above 25 components has captured with 95 percent of the variance.
 
 
-```{r gbm, warning=FALSE}
+```{r gbm, message=FALSE, warning=FALSE}
 set.seed(1234)
 fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm")
 pred_gbm <- predict(fit_gbm, newdata = data.validPca)
 confusionMatrix(pred_gbm,data.validPca$classe)
 ```
 
-```{r rf, warning=FALSE}
+```{r rf, message=FALSE, warning=FALSE}
 set.seed(1234)
 fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf")
 pred_rf <- predict(fit_rf, newdata = data.validPca)
 confusionMatrix(pred_rf,data.validPca$classe)
 ```
 
-```{r ctree, warning=FALSE}
+```{r ctree, message=FALSE, warning=FALSE}
 set.seed(1234)
 fit_ctree <- train(classe ~ ., data = data.trainPca, method = "ctree")
 pred_ctree <- predict(fit_ctree, newdata = data.validPca)
