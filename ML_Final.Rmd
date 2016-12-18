@@ -85,28 +85,42 @@ data.validPart <- data.train[-inTrain,]
 
 ## Modeling
 
-I made plan to use ensemble model with stacking glm, gbm, rf, lda. There's no need for PCA transform when use random forest, but I'll use it for other models.
+I made plan to use ensemble model with stacking gbm, rf, lda. There's no need for PCA transform when use random forest, but I'll use it for other models.
 
 ```{r pca}
 # 53th column is "classe" what will used for outcome label.
-pcaModel <- preProcess(data.train[,-53], method=c("pca", "center", "scale"), thresh = 0.95)
-data.trainPca <- predict(pcaModel, data.train[,-53])
-data.trainPca <- data.frame(data.trainPca, classe = data.train[,53])
-data.testPca <- predict(pcaModel, data.test[,-53])
+pcaModel <- preProcess(data.trainPart[,-53], method=c("pca", "center", "scale"), thresh = 0.95)
+data.trainPca <- predict(pcaModel, data.trainPart[,-53])
+data.trainPca <- data.frame(data.trainPca, classe = data.trainPart[,53])
+data.validPca <- predict(pcaModel, data.validPart[,-53])
+data.validPca <- data.frame(data.validPca, classe = data.validPart[,53])
 print(pcaModel)
 ```
 
 As you see above 25 components has captured with 95 percent of the variance.
 
 ```{r glm}
+fit_glm <- train(classe ~ ., data = data.trainPca, method = "glm", trControl = trainControl(method="repeatedcv", number=10, repeats=3))
+pred_glm <- predict(fit_glm, data.validPca)
+confusionMatrix(pred_glm, data.validPca$classe)$overall[1]
+accuracy(pred_glm, data.validPca$classe)
 ```
 
 
 ```{r gbm}
+set.seed(1234)
+fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm", trControl = trainControl(method="cv", number=10))
+fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm")
+pred_gbm <- predict(fit_gbm, newdata = data.validPca)
+confusionMatrix(pred_gbm,data.validPca$classe)
 ```
 
-
 ```{r rf}
+set.seed(1234)
+fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf", trControl = trainControl(method="cv", number=10))
+fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf")
+pred_rf <- predict(fit_rf, newdata = data.validPca)
+confusionMatrix(pred_rf,data.validPca$classe)
 ```
 
 ```{r lda}
