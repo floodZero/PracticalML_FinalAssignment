@@ -10,7 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Executive Summary
-
+This is final report of Coursera Practical Machine Learning Course. Goal of this document is to build a prediction model of Weight Lifting Exercise. The dataset contains variables from sensor worn by users and the classes that type of exercise.
+For match this goal, I used ensemble model of Generalized Boosted Regression Model, Random Forest, Linear Discriminant Analysis. And for reducing dimension to increase training speed, PCA is used. After all this approach, I could get 0.98% of accuracy.
 
 ## Loading data
 
@@ -20,6 +21,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(caret)
 library(randomForest)
 library(corrplot)
+
+# For increasing learning speed, use multi-core.
+library(doMC)
+registerDoMC(cores = 8)
 ```
 
 #### Download and Load training/test data
@@ -85,7 +90,7 @@ data.validPart <- data.train[-inTrain,]
 
 ## Modeling
 
-I made plan to use ensemble model with stacking gbm, rf, lda. There's no need for PCA transform when use random forest, but I'll use it for other models.
+I made plan to use ensemble model with stacking gbm, rf, lda. And PCA can reduce the size of variables for training performance.
 
 ```{r pca}
 # 53th column is "classe" what will used for outcome label.
@@ -99,17 +104,9 @@ print(pcaModel)
 
 As you see above 25 components has captured with 95 percent of the variance.
 
-```{r glm}
-fit_glm <- train(classe ~ ., data = data.trainPca, method = "glm", trControl = trainControl(method="repeatedcv", number=10, repeats=3))
-pred_glm <- predict(fit_glm, data.validPca)
-confusionMatrix(pred_glm, data.validPca$classe)$overall[1]
-accuracy(pred_glm, data.validPca$classe)
-```
-
 
 ```{r gbm}
 set.seed(1234)
-fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm", trControl = trainControl(method="cv", number=10))
 fit_gbm <- train(classe ~ ., data = data.trainPca, method = "gbm")
 pred_gbm <- predict(fit_gbm, newdata = data.validPca)
 confusionMatrix(pred_gbm,data.validPca$classe)
@@ -117,40 +114,43 @@ confusionMatrix(pred_gbm,data.validPca$classe)
 
 ```{r rf}
 set.seed(1234)
-fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf", trControl = trainControl(method="cv", number=10))
 fit_rf <- train(classe ~ ., data = data.trainPca, method = "rf")
 pred_rf <- predict(fit_rf, newdata = data.validPca)
 confusionMatrix(pred_rf,data.validPca$classe)
 ```
 
 ```{r lda}
+set.seed(1234)
+fit_lda <- train(classe ~ ., data = data.trainPca, method = "lda")
+pred_lda <- predict(fit_lda, newdata = data.validPca)
+confusionMatrix(pred_lda,data.validPca$classe)
 ```
 
 ```{r ensemble}
+predDF <- data.frame(pred_gbm, pred_rf, pred_lda, classe = data.validPca$classe)
+fit_stacked <- train(classe ~ ., data = predDF, method="rf")
+pred_stacked <- predict(fit_stacked, newdata = predDF)
+confusionMatrix(pred_stacked,data.validPca$classe)
 ```
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+The model what has best performance is Random forest as you see. And the ensemble model of gbm, rf, lda gets better only 0.0028% of accuracy.
 
 
-## PCA
+## Testing
 
+We need answer to predict the 20 test set with this model.
+Here is the results.
 
-## Training
-1. glm
-2. gbm
-3. rf
-4. lda
+```{r testing}
+# Apply PCA
+data.testPCA <- predict(pcaModel, data.test[,-53])
+pred_gbm_test <- predict(fit_gbm, newdata = data.testPCA)
+pred_rf_test <- predict(fit_rf, newdata = data.testPCA)
+pred_lda_test <- predict(fit_lda, newdata = data.testPCA)
 
-ensemble
+predDF_test <- data.frame(pred_gbm = pred_gbm_test, pred_rf = pred_rf_test, pred_lda = pred_lda_test)
+pred_stacked_test <- predict(fit_stacked, newdata = predDF_test)
+print(t(data.frame(pred_stacked_test)))
 
-## Validation
-
-## Summary
-
-
-
-
-
-
-
-
+```
 
